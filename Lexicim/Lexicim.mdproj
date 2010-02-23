@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ItemType>ValaProject</ItemType>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A55439AB-3218-474E-858D-55108DBB2D39}</ProjectGuid>
+    <Packages>
+      <Packages>
+        <ProjectPackage file="/usr/share/vala/vapi/glib-2.0.vapi" name="glib-2.0" IsProject="false" />
+        <ProjectPackage file="/usr/share/vala/vapi/gtk+-2.0.vapi" name="gtk+-2.0" IsProject="false" />
+      </Packages>
+    </Packages>
+    <compiler>
+      <compiler />
+    </compiler>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug</OutputPath>
+    <CodeGeneration>
+      <CodeGeneration WarningLevel="All" WarningsAsErrors="false" OptimizationLevel="0" ExtraCompilerArguments="--save-temps" DefineSymbols="DEBUG MONODEVELOP" EnableMultithreading="false" ctype="ValaCompilationParameters" />
+    </CodeGeneration>
+    <SourceDirectory>.</SourceDirectory>
+    <Output>
+      <Output output="Lexicim" />
+    </Output>
+    <Build>
+      <Build target="SharedLibrary" />
+    </Build>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release</OutputPath>
+    <CodeGeneration>
+      <CodeGeneration WarningLevel="Normal" WarningsAsErrors="false" OptimizationLevel="3" ExtraCompilerArguments="" DefineSymbols="MONODEVELOP" EnableMultithreading="false" ctype="ValaCompilationParameters" />
+    </CodeGeneration>
+    <SourceDirectory>.</SourceDirectory>
+    <Output>
+      <Output output="Lexicim" />
+    </Output>
+    <Build>
+      <Build target="Bin" />
+    </Build>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="immodule.vala" />
+    <Compile Include="lexicim.vala" />
+  </ItemGroup>
+</Project>

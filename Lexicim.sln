@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{9344bdbb-3e7f-41fc-a0dd-8665d75ee146}") = "Lexicim", "Lexicim\Lexicim.mdproj", "{A55439AB-3218-474E-858D-55108DBB2D39}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A55439AB-3218-474E-858D-55108DBB2D39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A55439AB-3218-474E-858D-55108DBB2D39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A55439AB-3218-474E-858D-55108DBB2D39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A55439AB-3218-474E-858D-55108DBB2D39}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Lexicim\Lexicim.mdproj
+	EndGlobalSection
+EndGlobal
