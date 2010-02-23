@@ -11,6 +11,7 @@
       <Packages>
         <ProjectPackage file="/usr/share/vala/vapi/glib-2.0.vapi" name="glib-2.0" IsProject="false" />
         <ProjectPackage file="/usr/share/vala/vapi/gtk+-2.0.vapi" name="gtk+-2.0" IsProject="false" />
+        <ProjectPackage file="/usr/share/vala/vapi/gee-1.0.vapi" name="gee-1.0" IsProject="false" />
       </Packages>
     </Packages>
     <compiler>

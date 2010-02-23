@@ -1,10 +1,18 @@
 using GLib;
 using Gtk;
+using Gee;
 
 public class Lexicim.Lexicim: Gtk.IMContext {
 	public const string linux_default_dictionary_path = "/usr/share/dict";
 	public const string im_name = "Lexicim";
 	static string[] words;
+	static Map<unichar,int> indices;
+	
+	int lastMatchedIndex;
+	
+	public Lexicim () {
+		lastMatchedIndex = -1;
+	}// constructor
 	
 	public override void get_preedit_string (out string str, out Pango.AttrList attrs, out int pos) {
 		str = "";
@@ -57,6 +65,9 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		return handled;
 	}// filter_keypress
 	
+	public override void reset () {
+	}// reset
+	
 	static string get_token (string surrounding, int position) {
 		string token = "";
 		string tmp = "";
@@ -87,11 +98,43 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 			}
 			
 			words = contents.split ("\n");
+			
+			// Cache letter positions
+			int i = 0;
+			foreach (unowned string word in words) {
+				if (0 < word.length && !indices.contains (word[0])) {
+					indices[word[0]] = i;
+				}
+				++i;
+			}
 			stdout.printf("%s: Dictionary %s loaded.\n", im_name, language);
 		}
 	}// load_dictionary
 	
 	public string lookup (string token) {
+		return token; // TODO: finish this
+		
+		int matchedCharacters = 0;
+		
+		if (0 < lastMatchedIndex) {
+			matchedCharacters = match_characters (token, words[lastMatchedIndex]);
+		} else if (indices.contains (token[0])) {
+			matchedCharacters = 1;
+			for (int i=indices[token[0]]; i<words.length; ++i) {
+				
+			}
+		}
+		
 		return token;
 	}// lookup
+	
+	static int match_characters (string a, string z) {
+		int i=0;
+		
+		for (i=0; i<a.length && i<z.length; ++i) {
+			if (a[i] != z[i]){ break; }
+		}
+		
+		return i;
+	}// match_characters
 }
