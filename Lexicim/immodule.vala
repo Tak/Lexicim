@@ -4,12 +4,12 @@ using Gtk;
 namespace Lexicim {
 
 	const string context_id = "LexicimInputModule_v001";
-	const string context_name = "Lexicim";
 	const string locales = "/usr/share/locales";
 	
 	[ModuleInit]
 	[CCode(cname="im_module_init")]
 	public static void init (TypeModule module) {
+		Lexicim.load_dictionary ("american-english");
 	}// init
 	
 	[CCode(cname="im_module_exit")]
@@ -19,7 +19,7 @@ namespace Lexicim {
 	[CCode(cname="im_module_list")]
 	public static void list_modules (out IMContextInfo?[] contexts) {
 		contexts = new IMContextInfo[1];
-		IMContextInfo blah = { context_id, context_name, context_name, locales, "" };
+		IMContextInfo blah = { context_id, Lexicim.im_name, Lexicim.im_name, locales, "" };
 		contexts[0] = blah;
 	}// list_modules
 	

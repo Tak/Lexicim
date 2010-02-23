@@ -47,5 +47,6 @@
   <ItemGroup>
     <Compile Include="immodule.vala" />
     <Compile Include="lexicim.vala" />
+    <Compile Include="gdkkeysyms.vapi" />
   </ItemGroup>
 </Project>
