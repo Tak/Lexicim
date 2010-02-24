@@ -71,18 +71,25 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				reset ();
 				preedit_changed ();
 				break;
-			case Gdk.Key_Down:
-			case Gdk.Key_downarrow:
-			case Gdk.Key_KP_Down:
-				preedit_changed ();
-				handled = enabled;
-				break;
-			case Gdk.Key_Up:
-			case Gdk.Key_uparrow:
-			case Gdk.Key_KP_Up:
+			case Gdk.Key_Left:
+			case Gdk.Key_leftarrow:
+			case Gdk.Key_KP_Left:
 				lastMatchedIndex-=2;
 				preedit_changed ();
 				handled = enabled;
+				break;
+			case Gdk.Key_Right:
+			case Gdk.Key_rightarrow:
+			case Gdk.Key_KP_Right:
+				preedit_changed ();
+				handled = enabled;
+				break;
+			case Gdk.Key_KP_Space:
+			case Gdk.Key_space:
+				commit (commit_string);
+				reset ();
+				preedit_changed ();
+				handled = true;
 				break;
 			default:
 				enabled = event.str[0].isprint ();
