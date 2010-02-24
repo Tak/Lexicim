@@ -40,6 +40,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		bool handled = false;
 		
 		if (Gdk.EventType.KEY_PRESS == event.type) {
+			stdout.printf("Got keypress %u\n", event.keyval);
 			string commit_string = event.str;
 			
 			switch (event.keyval) {
@@ -79,6 +80,13 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				}
 				break;
 			}
+		} else if (Gdk.EventType.KEY_RELEASE == event.type && 
+		           Gdk.Key_Tab == event.keyval) {
+			enabled = false;
+			reset ();
+			preedit_changed ();
+		} else {
+			stdout.printf("Got event type %d\n", (int)event.type);
 		}
 		
 		return handled;
