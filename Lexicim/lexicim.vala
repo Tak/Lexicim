@@ -70,8 +70,10 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				preedit_changed ();
 				break;
 			default:
-				enabled = event.str[0].isalpha ();
-				commit (commit_string);
+				enabled = event.str[0].isprint ();
+				if (enabled) {
+					commit (commit_string);
+				}
 				reset ();
 				preedit_changed ();
 				break;
@@ -167,8 +169,12 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 					firstIndex = i;
 					matchedCharacters = tmp;
 				} else if (tmp < matchedCharacters) {
-					lastMatchedIndex = firstIndex;
-					return words[firstIndex];
+					if (token.length == matchedCharacters) {
+						lastMatchedIndex = firstIndex;
+						return words[firstIndex];
+					} else {
+						break;
+					}
 				}
 			}
 		} // No previous match - search this section from the beginning
