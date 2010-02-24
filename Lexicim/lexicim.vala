@@ -171,6 +171,10 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 			// We've previously matched - cycle through equally good matches
 			firstIndex = lastMatchedIndex+1;
 			matchedCharacters = match_characters (token, words[lastMatchedIndex]);
+			if (matchedCharacters > match_characters (token, words[firstIndex])) {
+				firstIndex = indices[token[0]];
+			}// we've hit the end of the good matches; start over
+			
 			for (int i=firstIndex; i<words.length; ++i) {
 				tmp = match_characters (token, words[i]); 
 				if (matchedCharacters < tmp) {
@@ -178,9 +182,13 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 					stdout.printf("Matched %d characters of %s\n", tmp, words[i]);
 					firstIndex = i;
 				} else if (matchedCharacters > tmp) {
-					stdout.printf("Best match for %s is %s\n", token, words[firstIndex]);
-					lastMatchedIndex = firstIndex;
-					return words[firstIndex];
+					if (token.length == matchedCharacters) {
+						stdout.printf("Best match for %s is %s\n", token, words[firstIndex]);
+						lastMatchedIndex = firstIndex;
+						return words[firstIndex];
+					} else {
+						break;
+					}
 				}
 			}
 		} else if (indices.contains (token[0])) {
