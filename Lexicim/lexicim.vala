@@ -57,7 +57,10 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				} else {
 					commit_string = "";
 				}
+				commit (commit_string);
+				enabled = false;
 				reset ();
+				preedit_changed ();
 				break;
 			case Gdk.Key_BackSpace:
 			case Gdk.Key_Delete:
@@ -67,17 +70,10 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				preedit_changed ();
 				break;
 			default:
-				if (event.str[0].isalpha()) {
-					enabled = true;
-					stdout.printf("Committing %s\n", commit_string);
-					commit (commit_string);
-					reset ();
-					preedit_changed ();
-				} else {
-					enabled = false;
-					reset ();
-					preedit_changed ();
-				}
+				enabled = event.str[0].isalpha ();
+				commit (commit_string);
+				reset ();
+				preedit_changed ();
 				break;
 			}
 		} else if (Gdk.EventType.KEY_RELEASE == event.type && 
