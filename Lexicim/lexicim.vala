@@ -29,6 +29,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		if (2 < token.length) {
 			str = lookup (token).offset (token.length);
 			pos = 0;
+			attrs.insert (Pango.attr_style_new (Pango.Style.ITALIC));
 		}// only do lookups on 3+-letter words
 		
 		stdout.printf ("Using preedit string '%s' for surrounding '%s'\n", str, surrounding);
@@ -50,6 +51,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				string preedit;
 				Pango.AttrList attrs;
 				int pos;
+				--lastMatchedIndex;
 				get_preedit_string(out preedit, out attrs, out pos);
 				if (0 < preedit.length) {
 					commit_string = "%s ".printf (preedit);
@@ -68,6 +70,19 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				enabled = false;
 				reset ();
 				preedit_changed ();
+				break;
+			case Gdk.Key_Down:
+			case Gdk.Key_downarrow:
+			case Gdk.Key_KP_Down:
+				preedit_changed ();
+				handled = enabled;
+				break;
+			case Gdk.Key_Up:
+			case Gdk.Key_uparrow:
+			case Gdk.Key_KP_Up:
+				lastMatchedIndex-=2;
+				preedit_changed ();
+				handled = enabled;
 				break;
 			default:
 				enabled = event.str[0].isprint ();
@@ -147,15 +162,17 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		
 		if (0 < lastMatchedIndex) {
 			// We've previously matched - cycle through equally good matches
-			firstIndex = lastMatchedIndex;
+			firstIndex = lastMatchedIndex+1;
 			matchedCharacters = match_characters (token, words[lastMatchedIndex]);
-			for (int i=lastMatchedIndex+1; i<words.length; ++i) {
+			for (int i=firstIndex; i<words.length; ++i) {
 				tmp = match_characters (token, words[i]); 
 				if (matchedCharacters < tmp) {
+					matchedCharacters = tmp;
 					stdout.printf("Matched %d characters of %s\n", tmp, words[i]);
 					firstIndex = i;
 				} else if (matchedCharacters > tmp) {
-					stdout.printf("Best match for %s is %s\n", token, words[lastMatchedIndex]);
+					stdout.printf("Best match for %s is %s\n", token, words[firstIndex]);
+					lastMatchedIndex = firstIndex;
 					return words[firstIndex];
 				}
 			}
