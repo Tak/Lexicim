@@ -21,8 +21,11 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 	/// Whether completion is currently enabled
 	bool enabled;
 	
+	int preeditRequests;
+	
 	public Lexicim () {
 		lastMatchedIndex = -1;
+		preeditRequests = 0;
 	}// constructor
 	
 	/**
@@ -43,12 +46,16 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		bool must_free_surrounding = get_surrounding (out surrounding, out surrounding_position);
 		string token = get_token (surrounding, surrounding_position);
 		
-		if (2 < token.length) {
+		if (0 >= preeditRequests && 0 <= lastMatchedIndex) {
+			str = words[lastMatchedIndex].offset (token.length);
+			attrs.insert (Pango.attr_style_new (Pango.Style.ITALIC));
+			return;
+		} else if (2 < token.length) {
 			// Lookup the token, and display the suggested completion in italics
 			str = lookup (token).offset (token.length);
-			pos = 0;
 			attrs.insert (Pango.attr_style_new (Pango.Style.ITALIC));
 		}// only do lookups on 3+-letter words
+		--preeditRequests;
 		
 		stdout.printf ("Using preedit string '%s' for surrounding '%s'\n", str, surrounding);
 		
@@ -77,6 +84,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				Pango.AttrList attrs;
 				int pos;
 				--lastMatchedIndex;
+				++preeditRequests;
 				get_preedit_string(out preedit, out attrs, out pos);
 				if (0 < preedit.length) {
 					commit_string = "%s ".printf (preedit);
@@ -88,6 +96,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				commit (commit_string);
 				enabled = false;
 				reset ();
+				++preeditRequests;
 				preedit_changed ();
 				break;
 			case Gdk.Key_BackSpace:
@@ -96,6 +105,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				// Clear completion on backspace/delete
 				enabled = false;
 				reset ();
+				++preeditRequests;
 				preedit_changed ();
 				break;
 			case Gdk.Key_Left:
@@ -103,6 +113,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 			case Gdk.Key_KP_Left:
 				// Cycle backward through completions
 				lastMatchedIndex-=2;
+				++preeditRequests;
 				preedit_changed ();
 				handled = enabled;
 				break;
@@ -110,6 +121,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 			case Gdk.Key_rightarrow:
 			case Gdk.Key_KP_Right:
 				// Cycle forward through completions
+				++preeditRequests;
 				preedit_changed ();
 				handled = enabled;
 				break;
@@ -118,6 +130,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				// Special-case space input - this was necessary for xchat
 				commit (commit_string);
 				reset ();
+				++preeditRequests;
 				preedit_changed ();
 				handled = true;
 				break;
@@ -128,6 +141,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 					commit (commit_string);
 				}
 				reset ();
+				++preeditRequests;
 				preedit_changed ();
 				break;
 			}
@@ -136,6 +150,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 			// Special-case tab release - this was necessary for gedit
 			enabled = false;
 			reset ();
+			++preeditRequests;
 			preedit_changed ();
 		} else {
 			stdout.printf("Got event type %d\n", (int)event.type);
