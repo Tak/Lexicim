@@ -21,11 +21,19 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 	/// Whether completion is currently enabled
 	bool enabled;
 	
+	string preedit;
+	Pango.AttrList preeditAttrs;
+	int preeditPos;
+	
 	int preeditRequests;
 	
 	public Lexicim () {
 		lastMatchedIndex = -1;
 		preeditRequests = 0;
+		preedit = "";
+		preeditAttrs = new Pango.AttrList ();
+		preeditAttrs.insert (Pango.attr_style_new (Pango.Style.ITALIC));
+		preeditPos = 0;
 	}// constructor
 	
 	/**
@@ -33,35 +41,64 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 	 * @see Gtk.IMContext.get_preedit_string
 	 */
 	public override void get_preedit_string (out string str, out Pango.AttrList attrs, out int pos) {
-		str = "";
-		pos = 0;
-		attrs = new Pango.AttrList ();
-		
-		// Don't try to complete if there's no dictionary or completion is disabled
-		if (!enabled || null == words){ return; }
-		
-		// Get the completion token
-		unowned string? surrounding = null;
-		int surrounding_position = 0;
-		bool must_free_surrounding = get_surrounding (out surrounding, out surrounding_position);
-		string token = get_token (surrounding, surrounding_position);
-		
-		if (0 >= preeditRequests && 0 <= lastMatchedIndex) {
-			str = words[lastMatchedIndex].offset (token.length);
-			attrs.insert (Pango.attr_style_new (Pango.Style.ITALIC));
-			return;
-		} else if (2 < token.length) {
-			// Lookup the token, and display the suggested completion in italics
-			str = lookup (token).offset (token.length);
-			attrs.insert (Pango.attr_style_new (Pango.Style.ITALIC));
-		}// only do lookups on 3+-letter words
-		--preeditRequests;
-		
-		stdout.printf ("Using preedit string '%s' for surrounding '%s'\n", str, surrounding);
-		
-		// Goofy api
-		if (must_free_surrounding){ GLib.free ((void*)surrounding); }
+		if (enabled) {
+			str = preedit;
+			attrs = preeditAttrs;
+			pos = preeditPos;
+		} else {
+			str = "";
+			pos = 0;
+			attrs = new Pango.AttrList ();
+		}
 	}// get_preedit_string
+	
+	void first_preedit_string () {
+		string token = get_current_token ();
+		if (2 < token.length) {
+			preedit = lookup (token).offset (token.length);
+		}// only do lookups on 3+-letter words
+		preedit_changed ();
+	}// first_preedit_string
+	
+	void next_preedit_string () {
+		if (0 > lastMatchedIndex || words.length-1 <= lastMatchedIndex) {
+			first_preedit_string ();
+			return;
+		}
+		
+		string token = get_current_token ();
+		int matchedCharacters = match_characters (token, words[lastMatchedIndex]);
+		if (match_characters (token, words[lastMatchedIndex+1]) < matchedCharacters ||
+		    token.length < matchedCharacters) {
+			// End of equally good matches
+			first_preedit_string ();
+			return;
+		} else {
+			++lastMatchedIndex;
+			preedit = words[lastMatchedIndex].offset (token.length);
+		}// check validity of next word
+		preedit_changed ();
+	}// next_preedit_string
+	
+	void previous_preedit_string () {
+		if (1 > lastMatchedIndex) {
+			first_preedit_string ();
+			return;
+		}
+		
+		string token = get_current_token ();
+		int matchedCharacters = match_characters (token, words[lastMatchedIndex]);
+		if (match_characters (token, words[lastMatchedIndex-1]) < matchedCharacters ||
+		    token.length < matchedCharacters) {
+			// End of equally good matches
+			first_preedit_string ();
+			return;
+		} else {
+			--lastMatchedIndex;
+			preedit = words[lastMatchedIndex].offset (token.length);
+		}// check validity of next word
+		preedit_changed ();
+	}// previous_preedit_string
 	
 	/**
 	 * Intercept keypresses to trigger completion appropriately
@@ -83,8 +120,6 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				string preedit;
 				Pango.AttrList attrs;
 				int pos;
-				--lastMatchedIndex;
-				++preeditRequests;
 				get_preedit_string(out preedit, out attrs, out pos);
 				if (0 < preedit.length) {
 					commit_string = "%s ".printf (preedit);
@@ -96,8 +131,6 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				commit (commit_string);
 				enabled = false;
 				reset ();
-				++preeditRequests;
-				preedit_changed ();
 				break;
 			case Gdk.Key_BackSpace:
 			case Gdk.Key_Delete:
@@ -105,24 +138,19 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				// Clear completion on backspace/delete
 				enabled = false;
 				reset ();
-				++preeditRequests;
-				preedit_changed ();
 				break;
 			case Gdk.Key_Left:
 			case Gdk.Key_leftarrow:
 			case Gdk.Key_KP_Left:
 				// Cycle backward through completions
-				lastMatchedIndex-=2;
-				++preeditRequests;
-				preedit_changed ();
+				previous_preedit_string ();
 				handled = enabled;
 				break;
 			case Gdk.Key_Right:
 			case Gdk.Key_rightarrow:
 			case Gdk.Key_KP_Right:
 				// Cycle forward through completions
-				++preeditRequests;
-				preedit_changed ();
+				next_preedit_string ();
 				handled = enabled;
 				break;
 			case Gdk.Key_KP_Space:
@@ -130,8 +158,6 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				// Special-case space input - this was necessary for xchat
 				commit (commit_string);
 				reset ();
-				++preeditRequests;
-				preedit_changed ();
 				handled = true;
 				break;
 			default:
@@ -139,10 +165,10 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				enabled = event.str[0].isprint ();
 				if (enabled) {
 					commit (commit_string);
+					first_preedit_string ();
+				} else {
+					reset ();
 				}
-				reset ();
-				++preeditRequests;
-				preedit_changed ();
 				break;
 			}
 		} else if (Gdk.EventType.KEY_RELEASE == event.type && 
@@ -150,8 +176,6 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 			// Special-case tab release - this was necessary for gedit
 			enabled = false;
 			reset ();
-			++preeditRequests;
-			preedit_changed ();
 		} else {
 			stdout.printf("Got event type %d\n", (int)event.type);
 		}// switch on event type
@@ -165,7 +189,22 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 	 */
 	public override void reset () {
 		lastMatchedIndex = -1;
+		preedit = "";
+		preedit_changed ();
 	}// reset
+	
+	string get_current_token () {
+		// Get the completion token
+		unowned string? surrounding = null;
+		int surrounding_position = 0;
+		bool must_free_surrounding = get_surrounding (out surrounding, out surrounding_position);
+		string token = get_token (surrounding, surrounding_position);
+		
+		// Goofy api
+		if (must_free_surrounding){ GLib.free ((void*)surrounding); }
+		
+		return token;
+	}// get_current_token
 	
 	/**
 	 * Gets the token at a given position in a string
@@ -237,34 +276,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		
 		stdout.printf("Looking up %s\n", token);
 		
-		if (0 < lastMatchedIndex) {
-			// We've previously matched - cycle through equally good matches
-			firstIndex = lastMatchedIndex+1;
-			matchedCharacters = match_characters (token, words[lastMatchedIndex]);
-			if (matchedCharacters > match_characters (token, words[firstIndex])) {
-				firstIndex = indices[token[0]];
-			}// we've hit the end of the good matches; start over
-			
-			for (int i=firstIndex; i<words.length; ++i) {
-				tmp = match_characters (token, words[i]); 
-				if (matchedCharacters < tmp) {
-					// Found better match
-					matchedCharacters = tmp;
-					stdout.printf("Matched %d characters of %s\n", tmp, words[i]);
-					firstIndex = i;
-				} else if (matchedCharacters > tmp) {
-					// Passed last good match
-					if (token.length == matchedCharacters) {
-						// Return first of equally good matches
-						stdout.printf("Best match for %s is %s\n", token, words[firstIndex]);
-						lastMatchedIndex = firstIndex;
-						return words[firstIndex];
-					} else {
-						break;
-					}// Don't return completions that don't match the full token
-				}// switch on match quality
-			}// for each word
-		} else if (indices.contains (token[0])) {
+		if (indices.contains (token[0])) {
 			// No previous match - search this section from the beginning
 			matchedCharacters = 1;
 		    firstIndex = indices[token[0]];
@@ -285,7 +297,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 					}// Don't return completions that don't match the full token
 				}// switch on match quality
 			}// for each word
-		}// switch on existence of previous match
+		}// if we have words beginning with the same letter as token
 		
 		return token;
 	}// lookup
