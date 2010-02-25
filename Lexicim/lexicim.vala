@@ -21,15 +21,13 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 	/// Whether completion is currently enabled
 	bool enabled;
 	
+	// Cached items for get_preedit_string
 	string preedit;
 	Pango.AttrList preeditAttrs;
 	int preeditPos;
 	
-	int preeditRequests;
-	
 	public Lexicim () {
 		lastMatchedIndex = -1;
-		preeditRequests = 0;
 		preedit = "";
 		preeditAttrs = new Pango.AttrList ();
 		preeditAttrs.insert (Pango.attr_style_new (Pango.Style.ITALIC));
@@ -52,14 +50,22 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		}
 	}// get_preedit_string
 	
+	/**
+	 * Sets the preedit string to the remainder of the first string 
+	 * to match the current token.
+	 */
 	void first_preedit_string () {
 		string token = get_current_token ();
 		if (2 < token.length) {
 			preedit = lookup (token).offset (token.length);
 		}// only do lookups on 3+-letter words
+		
 		preedit_changed ();
 	}// first_preedit_string
 	
+	/**
+	 * Sets the preedit string to the next valid completion.
+	 */
 	void next_preedit_string () {
 		if (0 > lastMatchedIndex || words.length-1 <= lastMatchedIndex) {
 			first_preedit_string ();
@@ -77,9 +83,13 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 			++lastMatchedIndex;
 			preedit = words[lastMatchedIndex].offset (token.length);
 		}// check validity of next word
+		
 		preedit_changed ();
 	}// next_preedit_string
 	
+	/**
+	 * Sets the preedit string to the previous valid completion.
+	 */
 	void previous_preedit_string () {
 		if (1 > lastMatchedIndex) {
 			first_preedit_string ();
@@ -97,6 +107,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 			--lastMatchedIndex;
 			preedit = words[lastMatchedIndex].offset (token.length);
 		}// check validity of next word
+		
 		preedit_changed ();
 	}// previous_preedit_string
 	
@@ -193,6 +204,10 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		preedit_changed ();
 	}// reset
 	
+	/**
+	 * Gets the alphabetic token around the current cursor position.
+	 * @return The current token, or empty string
+	 */
 	string get_current_token () {
 		// Get the completion token
 		unowned string? surrounding = null;
@@ -269,7 +284,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 	 * that matches at least token.length characters 
 	 * and at least as many characters matched in words[lastMatchedIndex]
 	 */
-	public string lookup (string token) {
+	string lookup (string token) {
 		int matchedCharacters = 0,
 		    tmp = 0,
 		    firstIndex = 0;
