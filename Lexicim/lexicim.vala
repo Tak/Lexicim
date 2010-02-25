@@ -58,6 +58,8 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		string token = get_current_token ();
 		if (2 < token.length) {
 			preedit = lookup (token).offset (token.length);
+		} else {
+			preedit = "";
 		}// only do lookups on 3+-letter words
 		
 		preedit_changed ();
