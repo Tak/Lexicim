@@ -16,5 +16,8 @@ Global
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Lexicim\Lexicim.mdproj
+		Policies = $0
+		$0.StandardHeader = $1
+		$1.inheritsSet = LGPLv3License
 	EndGlobalSection
 EndGlobal
