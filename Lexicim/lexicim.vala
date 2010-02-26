@@ -200,6 +200,7 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 				if (enabled) {
 					commit (commit_string);
 					first_preedit_string ();
+					handled = true;
 				} else {
 					reset ();
 				}
@@ -236,6 +237,8 @@ public class Lexicim.Lexicim: Gtk.IMContext {
 		unowned string? surrounding = null;
 		int surrounding_position = 0;
 		bool must_free_surrounding = get_surrounding (out surrounding, out surrounding_position);
+		if (null == surrounding){ return ""; }
+		
 		string token = get_token (surrounding, surrounding_position);
 		
 		// Goofy api
