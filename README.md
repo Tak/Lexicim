@@ -1,4 +1,4 @@
 Lexicim is a Gtk+ input module that offers dictionary-based completions as you type.
-
-To build Lexicim, follow the instructions in INSTALL. (Summary: ./configure && make)
+<br/><br/>
+To build Lexicim, ./autogen.sh and make
 
